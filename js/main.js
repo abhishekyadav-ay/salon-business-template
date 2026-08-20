@@ -130,10 +130,10 @@ function initShopStatus() {
 
   if (isOpen) {
     dot.classList.remove('closed');
-    text.textContent = `🟢 OPEN NOW • ${closeTimeText}`;
+    text.textContent = ` OPEN NOW • ${closeTimeText}`;
   } else {
     dot.classList.add('closed');
-    text.textContent = `🔴 CLOSED NOW • Opens 9:00 AM`;
+    text.textContent = ` CLOSED NOW • Opens 9:00 AM`;
   }
 }
 
