@@ -17,24 +17,35 @@ public class ServiceService {
     public List<Service> getAllServices() {
         return serviceRepository.findAll();
     }
-    public Service getServiceById(Long id) {
-    return serviceRepository.findById(id).orElse(null);
-}
-   public Service createService(Service service) {
-    return serviceRepository.save(service);
-}
-   public Service updateService(Long id, Service service) {
-    Service existingService = serviceRepository.findById(id).orElse(null);
 
-    if (existingService == null) {
-        return null;
+    public Service getServiceById(Long id) {
+        return serviceRepository.findById(id).orElse(null);
     }
 
-    existingService.setName(service.getName());
-    existingService.setDescription(service.getDescription());
-    existingService.setPrice(service.getPrice());
-    existingService.setDurationMinutes(service.getDurationMinutes());
+    public Service createService(Service service) {
+        return serviceRepository.save(service);
+    }
 
-    return serviceRepository.save(existingService);
-}
+    public Service updateService(Long id, Service service) {
+
+        Service existingService =
+                serviceRepository.findById(id).orElse(null);
+
+        if (existingService == null) {
+            return null;
+        }
+
+        existingService.setName(service.getName());
+        existingService.setDescription(service.getDescription());
+        existingService.setPrice(service.getPrice());
+        existingService.setDurationMinutes(
+                service.getDurationMinutes()
+        );
+
+        return serviceRepository.save(existingService);
+    }
+
+    public void deleteService(Long id) {
+        serviceRepository.deleteById(id);
+    }
 }

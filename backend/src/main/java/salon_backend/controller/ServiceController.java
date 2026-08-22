@@ -2,13 +2,14 @@ package salon_backend.controller;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import salon_backend.entity.Service;
 import salon_backend.service.ServiceService;
@@ -27,19 +28,27 @@ public class ServiceController {
     public List<Service> getAllServices() {
         return serviceService.getAllServices();
     }
+
     @GetMapping("/{id}")
     public Service getServiceById(@PathVariable Long id) {
-    return serviceService.getServiceById(id);
-} 
-    @PostMapping
-     public Service createService(@RequestBody Service service) {
-     return serviceService.createService(service);
-     }
-     @PutMapping("/{id}")
-    public Service updateService(
-        @PathVariable Long id,
-        @RequestBody Service service) {
+        return serviceService.getServiceById(id);
+    }
 
-    return serviceService.updateService(id, service);
-}
+    @PostMapping
+    public Service createService(@RequestBody Service service) {
+        return serviceService.createService(service);
+    }
+
+    @PutMapping("/{id}")
+    public Service updateService(
+            @PathVariable Long id,
+            @RequestBody Service service) {
+
+        return serviceService.updateService(id, service);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteService(@PathVariable Long id) {
+        serviceService.deleteService(id);
+    }
 }

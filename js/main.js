@@ -256,21 +256,96 @@ function initLightbox() {
    7. Interactive Booking Drawer / Modal
    -------------------------------------------------------------------------- */
 function initBookingModal() {
+  const API_BASE_URL = 'http://localhost:8081/api';
   const bookingModal = document.getElementById('bookingModal');
   const modalCloseBtn = document.getElementById('modalCloseBtn');
   const openModalBtns = document.querySelectorAll('.open-booking-modal');
   const bookingForm = document.getElementById('bookingForm');
   const bookingServiceSelect = document.getElementById('bookingService');
   const bookingDateInput = document.getElementById('bookingDate');
+  const bookingTimeSelect = document.getElementById('bookingTime');
+  const bookingStylistSelect = document.getElementById('bookingStylist');
+  const confirmBookingBtn = document.getElementById('confirmBookingBtn');
 
   if (!bookingModal) return;
+
+  function resetSelect(select, placeholder) {
+    select.innerHTML = '';
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = placeholder;
+    select.appendChild(option);
+  }
+
+  function formatTime(value) {
+    const [hourText, minute] = value.split(':');
+    const hour = Number(hourText);
+    const suffix = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${String(displayHour).padStart(2, '0')}:${minute} ${suffix}`;
+  }
+
+  async function loadBookingOptions() {
+    try {
+      const [servicesResponse, staffResponse] = await Promise.all([
+        fetch(`${API_BASE_URL}/services`),
+        fetch(`${API_BASE_URL}/staff`)
+      ]);
+      if (!servicesResponse.ok || !staffResponse.ok) {
+        throw new Error('Unable to load booking options');
+      }
+
+      const services = await servicesResponse.json();
+      const staff = await staffResponse.json();
+
+      resetSelect(bookingServiceSelect, '-- Choose a Service --');
+      services.forEach(service => {
+        const option = document.createElement('option');
+        option.value = service.id;
+        option.textContent = `${service.name} - ₹${service.price} (${service.durationMinutes} mins)`;
+        bookingServiceSelect.appendChild(option);
+      });
+
+      resetSelect(bookingStylistSelect, '-- Choose a Stylist --');
+      staff.forEach(member => {
+        const option = document.createElement('option');
+        option.value = member.id;
+        option.textContent = `${member.name} (${member.role || 'Stylist'})`;
+        bookingStylistSelect.appendChild(option);
+      });
+      await loadAvailableSlots();
+    } catch (error) {
+      showToast('Could not connect to the booking service.', 'error');
+    }
+  }
+
+  async function loadAvailableSlots() {
+    if (!bookingStylistSelect.value || !bookingDateInput.value) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/appointments/available-slots?staffId=${bookingStylistSelect.value}&date=${bookingDateInput.value}`);
+      if (!response.ok) throw new Error('Unable to load available slots');
+      const slots = await response.json();
+      resetSelect(bookingTimeSelect, '-- Select Time Slot --');
+      slots.forEach(slot => {
+        const option = document.createElement('option');
+        option.value = slot;
+        option.textContent = formatTime(slot);
+        bookingTimeSelect.appendChild(option);
+      });
+    } catch (error) {
+      resetSelect(bookingTimeSelect, '-- No Slots Available --');
+    }
+  }
 
   // Set minimum date to today
   if (bookingDateInput) {
     const today = new Date().toISOString().split('T')[0];
     bookingDateInput.min = today;
     bookingDateInput.value = today;
+    bookingDateInput.addEventListener('change', loadAvailableSlots);
   }
+  bookingStylistSelect.addEventListener('change', loadAvailableSlots);
+  loadBookingOptions();
 
   // Open modal handlers
   openModalBtns.forEach(btn => {
@@ -299,28 +374,48 @@ function initBookingModal() {
 
   // Form submit handler
   if (bookingForm) {
-    bookingForm.addEventListener('submit', (e) => {
+    bookingForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const service = bookingServiceSelect.value;
+      const serviceId = bookingServiceSelect.value;
+      const staffId = bookingStylistSelect.value;
       const date = document.getElementById('bookingDate').value;
       const time = document.getElementById('bookingTime').value;
       const name = document.getElementById('bookingClientName').value;
       const phone = document.getElementById('bookingClientPhone').value;
+      const notes = document.getElementById('bookingNotes').value;
 
-      if (!service || !date || !time || !name || !phone) {
+      if (!serviceId || !staffId || !date || !time || !name || !phone) {
         showToast('Please fill out all required reservation fields.', 'error');
         return;
       }
 
-      // Generate booking reference number
-      const refId = 'AURA-' + Math.floor(1000 + Math.random() * 9000);
+      confirmBookingBtn.disabled = true;
+      try {
+        const response = await fetch(`${API_BASE_URL}/appointments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerName: name,
+            customerPhone: phone,
+            staffId: Number(staffId),
+            appointmentDate: date,
+            appointmentTime: time,
+            serviceIds: [Number(serviceId)],
+            notes
+          })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Booking failed');
 
-      bookingModal.classList.remove('active');
-      bookingForm.reset();
-
-      // Show success modal/toast notification
-      showToast(`Reservation Confirmed! Ref #${refId} for ${name} on ${date} at ${time}.`, 'success');
+        bookingModal.classList.remove('active');
+        bookingForm.reset();
+        showToast(`Reservation confirmed! Booking #${result.id}.`, 'success');
+      } catch (error) {
+        showToast(error.message || 'Booking failed. Please try again.', 'error');
+      } finally {
+        confirmBookingBtn.disabled = false;
+      }
     });
   }
 }
