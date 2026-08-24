@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,8 +22,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
            "(:status IS NULL OR LOWER(a.status) = LOWER(:status)) AND " +
            "(:staffId IS NULL OR a.staff.id = :staffId) AND " +
            "(:date IS NULL OR a.appointmentDate = :date)")
-    List<Appointment> findWithFilters(
+    Page<Appointment> findWithFilters(
             @Param("status") String status,
             @Param("staffId") Long staffId,
-            @Param("date") LocalDate date);
+            @Param("date") LocalDate date,
+            Pageable pageable);
 }

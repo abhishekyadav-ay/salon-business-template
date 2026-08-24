@@ -18,6 +18,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import salon_backend.dto.AppointmentRequest;
 import salon_backend.entity.Appointment;
@@ -132,12 +136,13 @@ class AppointmentServiceTest {
     void getAppointments_shouldCallRepositoryWithFilters() {
         Appointment appt = new Appointment();
         appt.setId(1L);
-        when(appointmentRepository.findWithFilters("CONFIRMED", 1L, LocalDate.of(2026, 8, 25)))
-                .thenReturn(List.of(appt));
+        Pageable pageable = PageRequest.of(0, 10);
+        when(appointmentRepository.findWithFilters("CONFIRMED", 1L, LocalDate.of(2026, 8, 25), pageable))
+                .thenReturn(new PageImpl<>(List.of(appt)));
 
-        List<Appointment> result = appointmentService.getAppointments("CONFIRMED", 1L, LocalDate.of(2026, 8, 25));
+        Page<Appointment> result = appointmentService.getAppointments("CONFIRMED", 1L, LocalDate.of(2026, 8, 25), pageable);
 
-        assertEquals(1, result.size());
-        verify(appointmentRepository).findWithFilters("CONFIRMED", 1L, LocalDate.of(2026, 8, 25));
+        assertEquals(1, result.getContent().size());
+        verify(appointmentRepository).findWithFilters("CONFIRMED", 1L, LocalDate.of(2026, 8, 25), pageable);
     }
 }

@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import salon_backend.dto.AppointmentRequest;
@@ -74,11 +76,11 @@ public class AppointmentService {
         return appointmentRepository.save(appointment);
     }
 
-    public List<Appointment> getAppointments(String status, Long staffId, LocalDate date) {
-        return appointmentRepository.findWithFilters(status, staffId, date);
+    public Page<Appointment> getAppointments(String status, Long staffId, LocalDate date, Pageable pageable) {
+        return appointmentRepository.findWithFilters(status, staffId, date, pageable);
     }
 
-    public List<Appointment> getAllAppointments() { return getAppointments(null, null, null); }
+    public Page<Appointment> getAllAppointments(Pageable pageable) { return getAppointments(null, null, null, pageable); }
 
     public Appointment getAppointment(Long id) {
         return appointmentRepository.findById(id)

@@ -4,6 +4,9 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -36,11 +39,14 @@ public class AppointmentController {
     }
 
     @GetMapping
-    public List<Appointment> getAll(
+    public Page<Appointment> getAll(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long staffId,
-            @RequestParam(required = false) LocalDate date) {
-        return appointmentService.getAppointments(status, staffId, date);
+            @RequestParam(required = false) LocalDate date,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return appointmentService.getAppointments(status, staffId, date, pageable);
     }
 
     @GetMapping("/{id}")
