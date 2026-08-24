@@ -89,8 +89,8 @@ class AppointmentServiceTest {
         when(customerRepository.save(any(Customer.class))).thenReturn(customer);
         when(staffRepository.findById(1L)).thenReturn(Optional.of(staff));
         when(serviceRepository.findAllByIdIn(List.of(5L))).thenReturn(List.of(service));
-        when(appointmentRepository.existsByStaffIdAndAppointmentDateAndAppointmentTime(1L,
-                LocalDate.of(2026, 8, 25), LocalTime.of(10, 0))).thenReturn(false);
+        when(appointmentRepository.existsByStaffIdAndAppointmentDateAndAppointmentTimeAndStatusNot(1L,
+                LocalDate.of(2026, 8, 25), LocalTime.of(10, 0), "CANCELLED")).thenReturn(false);
         when(appointmentRepository.save(any(Appointment.class))).thenAnswer(invocation -> {
             Appointment appointment = invocation.getArgument(0);
             appointment.setId(99L);
@@ -121,8 +121,8 @@ class AppointmentServiceTest {
         when(customerRepository.save(any(Customer.class))).thenReturn(new Customer());
         when(staffRepository.findById(1L)).thenReturn(Optional.of(staff));
         when(serviceRepository.findAllByIdIn(List.of(5L))).thenReturn(List.of(service));
-        when(appointmentRepository.existsByStaffIdAndAppointmentDateAndAppointmentTime(1L,
-                LocalDate.of(2026, 8, 25), LocalTime.of(10, 0))).thenReturn(true);
+        when(appointmentRepository.existsByStaffIdAndAppointmentDateAndAppointmentTimeAndStatusNot(1L,
+                LocalDate.of(2026, 8, 25), LocalTime.of(10, 0), "CANCELLED")).thenReturn(true);
 
         assertThrows(ConflictException.class, () -> appointmentService.createAppointment(request));
         verify(appointmentRepository, never()).save(any(Appointment.class));

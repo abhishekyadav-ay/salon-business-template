@@ -58,8 +58,8 @@ public class AppointmentService {
             throw new ResourceNotFoundException("One or more selected services were not found");
         }
 
-        if (appointmentRepository.existsByStaffIdAndAppointmentDateAndAppointmentTime(
-                staff.getId(), request.getAppointmentDate(), request.getAppointmentTime())) {
+        if (appointmentRepository.existsByStaffIdAndAppointmentDateAndAppointmentTimeAndStatusNot(
+                staff.getId(), request.getAppointmentDate(), request.getAppointmentTime(), "CANCELLED")) {
             throw new ConflictException("The selected staff member is already booked for this slot");
         }
 
@@ -82,8 +82,32 @@ public class AppointmentService {
     }
 
     @Transactional
+    public Appointment confirmAppointment(Long id) {
+        Appointment appointment = getAppointment(id);
+        if (!"PENDING".equalsIgnoreCase(appointment.getStatus())) {
+            throw new IllegalArgumentException("Only PENDING appointments can be confirmed");
+        }
+        appointment.setStatus("CONFIRMED");
+        return appointmentRepository.save(appointment);
+    }
+
+    @Transactional
+    public Appointment completeAppointment(Long id) {
+        Appointment appointment = getAppointment(id);
+        if (!"CONFIRMED".equalsIgnoreCase(appointment.getStatus())) {
+            throw new IllegalArgumentException("Only CONFIRMED appointments can be completed");
+        }
+        appointment.setStatus("COMPLETED");
+        return appointmentRepository.save(appointment);
+    }
+
+    @Transactional
     public Appointment cancelAppointment(Long id) {
         Appointment appointment = getAppointment(id);
+        String currentStatus = appointment.getStatus();
+        if ("COMPLETED".equalsIgnoreCase(currentStatus) || "CANCELLED".equalsIgnoreCase(currentStatus)) {
+            throw new IllegalArgumentException("Cannot cancel an appointment that is " + (currentStatus != null ? currentStatus.toUpperCase() : "invalid"));
+        }
         appointment.setStatus("CANCELLED");
         return appointmentRepository.save(appointment);
     }

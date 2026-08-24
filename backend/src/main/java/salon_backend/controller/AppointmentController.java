@@ -41,6 +41,12 @@ public class AppointmentController {
     @GetMapping("/{id}")
     public Appointment getById(@PathVariable Long id) { return appointmentService.getAppointment(id); }
 
+    @PatchMapping("/{id}/confirm")
+    public Appointment confirm(@PathVariable Long id) { return appointmentService.confirmAppointment(id); }
+
+    @PatchMapping("/{id}/complete")
+    public Appointment complete(@PathVariable Long id) { return appointmentService.completeAppointment(id); }
+
     @PatchMapping("/{id}/cancel")
     public Appointment cancel(@PathVariable Long id) { return appointmentService.cancelAppointment(id); }
 

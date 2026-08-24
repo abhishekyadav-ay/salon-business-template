@@ -9,8 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import salon_backend.entity.Appointment;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
-    boolean existsByStaffIdAndAppointmentDateAndAppointmentTime(
-            Long staffId, LocalDate appointmentDate, LocalTime appointmentTime);
+    boolean existsByStaffIdAndAppointmentDateAndAppointmentTimeAndStatusNot(
+            Long staffId, LocalDate appointmentDate, LocalTime appointmentTime, String status);
 
     List<Appointment> findByStaffIdAndAppointmentDate(Long staffId, LocalDate appointmentDate);
 }
