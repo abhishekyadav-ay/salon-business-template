@@ -127,4 +127,17 @@ class AppointmentServiceTest {
         assertThrows(ConflictException.class, () -> appointmentService.createAppointment(request));
         verify(appointmentRepository, never()).save(any(Appointment.class));
     }
+
+    @Test
+    void getAppointments_shouldCallRepositoryWithFilters() {
+        Appointment appt = new Appointment();
+        appt.setId(1L);
+        when(appointmentRepository.findWithFilters("CONFIRMED", 1L, LocalDate.of(2026, 8, 25)))
+                .thenReturn(List.of(appt));
+
+        List<Appointment> result = appointmentService.getAppointments("CONFIRMED", 1L, LocalDate.of(2026, 8, 25));
+
+        assertEquals(1, result.size());
+        verify(appointmentRepository).findWithFilters("CONFIRMED", 1L, LocalDate.of(2026, 8, 25));
+    }
 }

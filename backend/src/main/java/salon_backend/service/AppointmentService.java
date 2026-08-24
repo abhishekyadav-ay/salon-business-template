@@ -74,7 +74,11 @@ public class AppointmentService {
         return appointmentRepository.save(appointment);
     }
 
-    public List<Appointment> getAllAppointments() { return appointmentRepository.findAll(); }
+    public List<Appointment> getAppointments(String status, Long staffId, LocalDate date) {
+        return appointmentRepository.findWithFilters(status, staffId, date);
+    }
+
+    public List<Appointment> getAllAppointments() { return getAppointments(null, null, null); }
 
     public Appointment getAppointment(Long id) {
         return appointmentRepository.findById(id)

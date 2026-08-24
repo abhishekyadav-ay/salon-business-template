@@ -36,7 +36,12 @@ public class AppointmentController {
     }
 
     @GetMapping
-    public List<Appointment> getAll() { return appointmentService.getAllAppointments(); }
+    public List<Appointment> getAll(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long staffId,
+            @RequestParam(required = false) LocalDate date) {
+        return appointmentService.getAppointments(status, staffId, date);
+    }
 
     @GetMapping("/{id}")
     public Appointment getById(@PathVariable Long id) { return appointmentService.getAppointment(id); }
