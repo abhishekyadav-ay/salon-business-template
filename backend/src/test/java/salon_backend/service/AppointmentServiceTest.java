@@ -1,27 +1,27 @@
 package salon_backend.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import salon_backend.dto.AppointmentRequest;
 import salon_backend.entity.Appointment;
@@ -79,12 +79,14 @@ class AppointmentServiceTest {
 
     @Test
     void createAppointment_shouldCreateCustomerAndAppointment_whenSlotAvailable() {
-        AppointmentRequest request = new AppointmentRequest();
+    LocalDate futureDate = LocalDate.now().plusDays(1);
+
+    AppointmentRequest request = new AppointmentRequest();
         request.setCustomerName("John Doe");
         request.setCustomerPhone("1234567890");
         request.setCustomerEmail("john@example.com");
         request.setStaffId(1L);
-        request.setAppointmentDate(LocalDate.of(2026, 8, 25));
+        request.setAppointmentDate(futureDate);
         request.setAppointmentTime(LocalTime.of(10, 0));
         request.setServiceIds(List.of(5L));
         request.setNotes("Trim and style");
@@ -93,8 +95,12 @@ class AppointmentServiceTest {
         when(customerRepository.save(any(Customer.class))).thenReturn(customer);
         when(staffRepository.findById(1L)).thenReturn(Optional.of(staff));
         when(serviceRepository.findAllByIdIn(List.of(5L))).thenReturn(List.of(service));
-        when(appointmentRepository.existsByStaffIdAndAppointmentDateAndAppointmentTimeAndStatusNot(1L,
-                LocalDate.of(2026, 8, 25), LocalTime.of(10, 0), "CANCELLED")).thenReturn(false);
+        when(appointmentRepository.existsByStaffIdAndAppointmentDateAndAppointmentTimeAndStatusNot(
+        1L,
+        futureDate,
+        LocalTime.of(10, 0),
+        "CANCELLED"
+)).thenReturn(false);
         when(appointmentRepository.save(any(Appointment.class))).thenAnswer(invocation -> {
             Appointment appointment = invocation.getArgument(0);
             appointment.setId(99L);
@@ -110,14 +116,16 @@ class AppointmentServiceTest {
         verify(appointmentRepository).save(any(Appointment.class));
     }
 
-    @Test
-    void createAppointment_shouldRejectDuplicateSlot() {
-        AppointmentRequest request = new AppointmentRequest();
+   @Test
+void createAppointment_shouldRejectDuplicateSlot() {
+    LocalDate futureDate = LocalDate.now().plusDays(1);
+
+    AppointmentRequest request = new AppointmentRequest();
         request.setCustomerName("Jane Doe");
         request.setCustomerPhone("5556667777");
         request.setCustomerEmail("jane@example.com");
         request.setStaffId(1L);
-        request.setAppointmentDate(LocalDate.of(2026, 8, 25));
+        request.setAppointmentDate(futureDate);
         request.setAppointmentTime(LocalTime.of(10, 0));
         request.setServiceIds(List.of(5L));
 
@@ -125,8 +133,12 @@ class AppointmentServiceTest {
         when(customerRepository.save(any(Customer.class))).thenReturn(new Customer());
         when(staffRepository.findById(1L)).thenReturn(Optional.of(staff));
         when(serviceRepository.findAllByIdIn(List.of(5L))).thenReturn(List.of(service));
-        when(appointmentRepository.existsByStaffIdAndAppointmentDateAndAppointmentTimeAndStatusNot(1L,
-                LocalDate.of(2026, 8, 25), LocalTime.of(10, 0), "CANCELLED")).thenReturn(true);
+        when(appointmentRepository.existsByStaffIdAndAppointmentDateAndAppointmentTimeAndStatusNot(
+        1L,
+        futureDate,
+        LocalTime.of(10, 0),
+        "CANCELLED"
+        )).thenReturn(true);
 
         assertThrows(ConflictException.class, () -> appointmentService.createAppointment(request));
         verify(appointmentRepository, never()).save(any(Appointment.class));
@@ -144,5 +156,19 @@ class AppointmentServiceTest {
 
         assertEquals(1, result.getContent().size());
         verify(appointmentRepository).findWithFilters("CONFIRMED", 1L, LocalDate.of(2026, 8, 25), pageable);
+    }
+
+    @Test
+    void getAppointments_shouldRespectSortDirection() {
+        Appointment appt = new Appointment();
+        appt.setId(2L);
+        Pageable descPageable = PageRequest.of(0, 10, Sort.by("appointmentDate").descending());
+        when(appointmentRepository.findWithFilters(null, null, null, descPageable))
+                .thenReturn(new PageImpl<>(List.of(appt)));
+
+        Page<Appointment> result = appointmentService.getAppointments(null, null, null, descPageable);
+
+        assertEquals(1, result.getContent().size());
+        verify(appointmentRepository).findWithFilters(null, null, null, descPageable);
     }
 }
