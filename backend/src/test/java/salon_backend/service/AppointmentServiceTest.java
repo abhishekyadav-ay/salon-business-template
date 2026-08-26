@@ -24,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import salon_backend.dto.AppointmentRequest;
+import salon_backend.dto.AppointmentResponse;
 import salon_backend.entity.Appointment;
 import salon_backend.entity.Customer;
 import salon_backend.entity.Service;
@@ -107,7 +108,7 @@ class AppointmentServiceTest {
             return appointment;
         });
 
-        Appointment created = appointmentService.createAppointment(request);
+        AppointmentResponse created = appointmentService.createAppointment(request);
 
         assertEquals(99L, created.getId());
         assertEquals("John Doe", created.getCustomer().getName());
@@ -145,30 +146,78 @@ void createAppointment_shouldRejectDuplicateSlot() {
     }
 
     @Test
-    void getAppointments_shouldCallRepositoryWithFilters() {
-        Appointment appt = new Appointment();
-        appt.setId(1L);
-        Pageable pageable = PageRequest.of(0, 10);
-        when(appointmentRepository.findWithFilters("CONFIRMED", 1L, LocalDate.of(2026, 8, 25), pageable))
-                .thenReturn(new PageImpl<>(List.of(appt)));
+void getAppointments_shouldCallRepositoryWithFilters() {
 
-        Page<Appointment> result = appointmentService.getAppointments("CONFIRMED", 1L, LocalDate.of(2026, 8, 25), pageable);
+    Appointment appt = new Appointment();
+    appt.setId(1L);
+    appt.setCustomer(customer);
+    appt.setStaff(staff);
+    appt.setServices(List.of(service));
 
-        assertEquals(1, result.getContent().size());
-        verify(appointmentRepository).findWithFilters("CONFIRMED", 1L, LocalDate.of(2026, 8, 25), pageable);
-    }
+    Pageable pageable = PageRequest.of(0, 10);
+
+    when(appointmentRepository.findWithFilters(
+            "CONFIRMED",
+            1L,
+            LocalDate.of(2026, 8, 25),
+            pageable
+    )).thenReturn(new PageImpl<>(List.of(appt)));
+
+    Page<AppointmentResponse> result =
+            appointmentService.getAppointments(
+                    "CONFIRMED",
+                    1L,
+                    LocalDate.of(2026, 8, 25),
+                    pageable
+            );
+
+    assertEquals(1, result.getContent().size());
+
+    verify(appointmentRepository).findWithFilters(
+            "CONFIRMED",
+            1L,
+            LocalDate.of(2026, 8, 25),
+            pageable
+    );
+}
 
     @Test
-    void getAppointments_shouldRespectSortDirection() {
-        Appointment appt = new Appointment();
-        appt.setId(2L);
-        Pageable descPageable = PageRequest.of(0, 10, Sort.by("appointmentDate").descending());
-        when(appointmentRepository.findWithFilters(null, null, null, descPageable))
-                .thenReturn(new PageImpl<>(List.of(appt)));
+void getAppointments_shouldRespectSortDirection() {
 
-        Page<Appointment> result = appointmentService.getAppointments(null, null, null, descPageable);
+    Appointment appt = new Appointment();
+    appt.setId(2L);
+    appt.setCustomer(customer);
+    appt.setStaff(staff);
+    appt.setServices(List.of(service));
 
-        assertEquals(1, result.getContent().size());
-        verify(appointmentRepository).findWithFilters(null, null, null, descPageable);
-    }
+    Pageable descPageable = PageRequest.of(
+            0,
+            10,
+            Sort.by("appointmentDate").descending()
+    );
+
+    when(appointmentRepository.findWithFilters(
+            null,
+            null,
+            null,
+            descPageable
+    )).thenReturn(new PageImpl<>(List.of(appt)));
+
+    Page<AppointmentResponse> result =
+            appointmentService.getAppointments(
+                    null,
+                    null,
+                    null,
+                    descPageable
+            );
+
+    assertEquals(1, result.getContent().size());
+
+    verify(appointmentRepository).findWithFilters(
+            null,
+            null,
+            null,
+            descPageable
+    );
+}
 }

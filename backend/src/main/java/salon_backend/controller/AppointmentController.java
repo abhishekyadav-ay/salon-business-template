@@ -21,12 +21,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import salon_backend.dto.AppointmentRequest;
-import salon_backend.entity.Appointment;
+import salon_backend.dto.AppointmentResponse;
 import salon_backend.service.AppointmentService;
 
 @RestController
 @RequestMapping("/api/appointments")
 public class AppointmentController {
+
     private final AppointmentService appointmentService;
 
     public AppointmentController(AppointmentService appointmentService) {
@@ -35,12 +36,14 @@ public class AppointmentController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Appointment create(@Valid @RequestBody AppointmentRequest request) {
+    public AppointmentResponse create(
+            @Valid @RequestBody AppointmentRequest request) {
+
         return appointmentService.createAppointment(request);
     }
 
     @GetMapping
-    public Page<Appointment> getAll(
+    public Page<AppointmentResponse> getAll(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long staffId,
             @RequestParam(required = false) LocalDate date,
@@ -48,27 +51,46 @@ public class AppointmentController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "appointmentDate") String sortBy,
             @RequestParam(defaultValue = "asc") String direction) {
+
         Sort sort = "desc".equalsIgnoreCase(direction)
                 ? Sort.by(sortBy).descending()
                 : Sort.by(sortBy).ascending();
+
         Pageable pageable = PageRequest.of(page, size, sort);
-        return appointmentService.getAppointments(status, staffId, date, pageable);
+
+        return appointmentService.getAppointments(
+                status,
+                staffId,
+                date,
+                pageable
+        );
     }
 
     @GetMapping("/{id}")
-    public Appointment getById(@PathVariable Long id) { return appointmentService.getAppointment(id); }
+    public AppointmentResponse getById(@PathVariable Long id) {
+        return appointmentService.getAppointment(id);
+    }
 
     @PatchMapping("/{id}/confirm")
-    public Appointment confirm(@PathVariable Long id) { return appointmentService.confirmAppointment(id); }
+    public AppointmentResponse confirm(@PathVariable Long id) {
+        return appointmentService.confirmAppointment(id);
+    }
 
     @PatchMapping("/{id}/complete")
-    public Appointment complete(@PathVariable Long id) { return appointmentService.completeAppointment(id); }
+    public AppointmentResponse complete(@PathVariable Long id) {
+        return appointmentService.completeAppointment(id);
+    }
 
     @PatchMapping("/{id}/cancel")
-    public Appointment cancel(@PathVariable Long id) { return appointmentService.cancelAppointment(id); }
+    public AppointmentResponse cancel(@PathVariable Long id) {
+        return appointmentService.cancelAppointment(id);
+    }
 
     @GetMapping("/available-slots")
-    public List<LocalTime> availableSlots(@RequestParam Long staffId, @RequestParam LocalDate date) {
+    public List<LocalTime> availableSlots(
+            @RequestParam Long staffId,
+            @RequestParam LocalDate date) {
+
         return appointmentService.getAvailableSlots(staffId, date);
     }
 }
