@@ -1,20 +1,19 @@
 package salon_backend.dto;
 
-public class StaffResponse {
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-    private Long id;
+public class StaffRequest {
+
+    @NotBlank(message = "Staff name is required")
+    @Size(max = 100, message = "Staff name must not exceed 100 characters")
     private String name;
+
+    @Size(max = 100, message = "Role must not exceed 100 characters")
     private String role;
+
+    @Size(max = 150, message = "Specialization must not exceed 150 characters")
     private String specialization;
-    private boolean active;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;
@@ -38,13 +37,5 @@ public class StaffResponse {
 
     public void setSpecialization(String specialization) {
         this.specialization = specialization;
-    }
-
-    public boolean isActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
     }
 }

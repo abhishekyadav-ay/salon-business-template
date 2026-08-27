@@ -62,7 +62,7 @@ class AppointmentServiceTest {
         staff = new Staff();
         staff.setId(1L);
         staff.setName("Ava");
-        staff.setIsActive(true);
+        staff.setActive(true);
 
         customer = new Customer();
         customer.setId(10L);
