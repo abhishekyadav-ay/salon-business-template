@@ -30,6 +30,7 @@ import salon_backend.entity.Customer;
 import salon_backend.entity.Service;
 import salon_backend.entity.Staff;
 import salon_backend.exception.ConflictException;
+import salon_backend.notification.NotificationService;
 import salon_backend.repository.AppointmentRepository;
 import salon_backend.repository.CustomerRepository;
 import salon_backend.repository.ServiceRepository;
@@ -49,6 +50,9 @@ class AppointmentServiceTest {
 
     @Mock
     private AppointmentRepository appointmentRepository;
+
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private AppointmentService appointmentService;

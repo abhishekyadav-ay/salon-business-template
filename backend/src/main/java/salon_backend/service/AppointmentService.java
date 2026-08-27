@@ -20,10 +20,12 @@ import salon_backend.entity.Staff;
 import salon_backend.exception.ConflictException;
 import salon_backend.exception.ResourceNotFoundException;
 import salon_backend.mapper.AppointmentMapper;
+import salon_backend.notification.NotificationService;
 import salon_backend.repository.AppointmentRepository;
 import salon_backend.repository.CustomerRepository;
 import salon_backend.repository.ServiceRepository;
 import salon_backend.repository.StaffRepository;
+
 
 @org.springframework.stereotype.Service
 public class AppointmentService {
@@ -32,18 +34,21 @@ public class AppointmentService {
     private final StaffRepository staffRepository;
     private final ServiceRepository serviceRepository;
     private final AppointmentRepository appointmentRepository;
+    private final NotificationService notificationService;
 
     public AppointmentService(
-            CustomerRepository customerRepository,
-            StaffRepository staffRepository,
-            ServiceRepository serviceRepository,
-            AppointmentRepository appointmentRepository) {
+        CustomerRepository customerRepository,
+        StaffRepository staffRepository,
+        ServiceRepository serviceRepository,
+        AppointmentRepository appointmentRepository,
+        NotificationService notificationService) {
 
-        this.customerRepository = customerRepository;
-        this.staffRepository = staffRepository;
-        this.serviceRepository = serviceRepository;
-        this.appointmentRepository = appointmentRepository;
-    }
+    this.customerRepository = customerRepository;
+    this.staffRepository = staffRepository;
+    this.serviceRepository = serviceRepository;
+    this.appointmentRepository = appointmentRepository;
+    this.notificationService = notificationService;
+}
 
     @Transactional
     public AppointmentResponse createAppointment(AppointmentRequest request) {
@@ -106,9 +111,12 @@ public class AppointmentService {
         appointment.setServices(services);
 
         Appointment savedAppointment =
-                appointmentRepository.save(appointment);
+        appointmentRepository.save(appointment);
 
-        return AppointmentMapper.toResponse(savedAppointment);
+notificationService
+        .sendNewAppointmentNotification(savedAppointment);
+
+return AppointmentMapper.toResponse(savedAppointment);
     }
 
     public Page<AppointmentResponse> getAppointments(
