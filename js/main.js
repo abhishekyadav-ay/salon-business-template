@@ -1,9 +1,8 @@
 /* ==========================================================================
-   AURA ATELIER & BARBERSHOP - MAIN JAVASCRIPT LOGIC
+   AURA ATELIER & BARBERSHOP - MAIN JAVASCRIPT LOGIC (MUMBAI ATELIER)
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Initialize all interactive modules
   initNavbar();
   initThemeToggle();
   initShopStatus();
@@ -18,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* --------------------------------------------------------------------------
-   1. Theme & UI Switcher (Royal Gold <-> Botanical Emerald)
+   1. Theme & Accent Switcher (Platinum Silver <-> Maharajah Gold <-> Botanical Emerald)
    -------------------------------------------------------------------------- */
 function initThemeToggle() {
   const themeToggleBtn = document.getElementById('themeToggleBtn');
@@ -28,20 +27,27 @@ function initThemeToggle() {
 
   if (!themeToggleBtn) return;
 
+  const themes = ['platinum', 'gold', 'emerald'];
+  let currentIdx = 0;
+
   themeToggleBtn.addEventListener('click', () => {
-    const currentTheme = htmlTag.getAttribute('data-theme') || 'gold';
-    const newTheme = currentTheme === 'gold' ? 'emerald' : 'gold';
+    currentIdx = (currentIdx + 1) % themes.length;
+    const newTheme = themes[currentIdx];
 
     htmlTag.setAttribute('data-theme', newTheme);
 
-    if (newTheme === 'emerald') {
-      themeLabel.textContent = 'UI 2: Botanical Spa';
-      if (heroAccentText) heroAccentText.textContent = 'Wellness & Elegance';
-      showToast('Switched to UI 2: Emerald Botanical Spa Theme', 'success');
+    if (newTheme === 'platinum') {
+      themeLabel.textContent = 'Platinum Silver';
+      if (heroAccentText) heroAccentText.textContent = 'Elegance & Style';
+      showToast('Switched to Platinum Silver & Obsidian Black Accent', 'success');
+    } else if (newTheme === 'gold') {
+      themeLabel.textContent = 'Maharajah Gold';
+      if (heroAccentText) heroAccentText.textContent = 'Royal Grooming';
+      showToast('Switched to Maharajah Gold Accent', 'success');
     } else {
-      themeLabel.textContent = 'UI 1: Royal Gold';
-      if (heroAccentText) heroAccentText.textContent = 'Grooming & Elegance';
-      showToast('Switched to UI 1: Royal Black & Gold Theme', 'success');
+      themeLabel.textContent = 'Botanical Emerald';
+      if (heroAccentText) heroAccentText.textContent = 'Zen Wellness';
+      showToast('Switched to Botanical Emerald Spa Accent', 'success');
     }
   });
 }
@@ -55,7 +61,6 @@ function initNavbar() {
   const navMenu = document.getElementById('navMenu');
   const navLinks = document.querySelectorAll('.nav-link');
 
-  // Sticky header background shift on scroll
   window.addEventListener('scroll', () => {
     if (window.scrollY > 50) {
       navbar.classList.add('scrolled');
@@ -64,14 +69,12 @@ function initNavbar() {
     }
   });
 
-  // Mobile Hamburger Toggle
   if (hamburgerBtn && navMenu) {
     hamburgerBtn.addEventListener('click', () => {
       hamburgerBtn.classList.toggle('active');
       navMenu.classList.toggle('active');
     });
 
-    // Close mobile menu on clicking any nav link
     navLinks.forEach(link => {
       link.addEventListener('click', () => {
         hamburgerBtn.classList.remove('active');
@@ -79,7 +82,6 @@ function initNavbar() {
       });
     });
 
-    // Close menu when clicking outside
     document.addEventListener('click', (e) => {
       if (!navbar.contains(e.target) && navMenu.classList.contains('active')) {
         hamburgerBtn.classList.remove('active');
@@ -90,14 +92,14 @@ function initNavbar() {
 }
 
 /* --------------------------------------------------------------------------
-   3. Real-Time Business Shop Status (Open/Closed Calculation)
+   3. Real-Time Business Shop Status (Mumbai IST Operating Hours)
    -------------------------------------------------------------------------- */
 function initShopStatus() {
   const statusBadge = document.getElementById('shopStatusBadge');
   if (!statusBadge) return;
 
   const now = new Date();
-  const day = now.getDay(); // 0 = Sunday, 1 = Monday, ...
+  const day = now.getDay(); // 0 = Sun, 1 = Mon, ...
   const hour = now.getHours();
   const minute = now.getMinutes();
   const currentTimeInMinutes = hour * 60 + minute;
@@ -106,22 +108,16 @@ function initShopStatus() {
   let closeTimeText = '';
 
   if (day >= 1 && day <= 5) {
-    // Monday - Friday: 9:00 AM (540m) to 9:00 PM (1260m)
-    if (currentTimeInMinutes >= 540 && currentTimeInMinutes < 1260) {
+    // Mon - Fri: 10:00 AM (600m) to 9:30 PM (1290m)
+    if (currentTimeInMinutes >= 600 && currentTimeInMinutes < 1290) {
       isOpen = true;
-      closeTimeText = 'Closes 9:00 PM';
+      closeTimeText = 'Closes 9:30 PM IST';
     }
-  } else if (day === 6) {
-    // Saturday: 9:00 AM (540m) to 8:00 PM (1200m)
-    if (currentTimeInMinutes >= 540 && currentTimeInMinutes < 1200) {
+  } else {
+    // Sat - Sun: 9:30 AM (570m) to 10:00 PM (1320m)
+    if (currentTimeInMinutes >= 570 && currentTimeInMinutes < 1320) {
       isOpen = true;
-      closeTimeText = 'Closes 8:00 PM';
-    }
-  } else if (day === 0) {
-    // Sunday: 10:00 AM (600m) to 6:00 PM (1080m)
-    if (currentTimeInMinutes >= 600 && currentTimeInMinutes < 1080) {
-      isOpen = true;
-      closeTimeText = 'Closes 6:00 PM';
+      closeTimeText = 'Closes 10:00 PM IST';
     }
   }
 
@@ -130,15 +126,15 @@ function initShopStatus() {
 
   if (isOpen) {
     dot.classList.remove('closed');
-    text.textContent = ` OPEN NOW • ${closeTimeText}`;
+    text.textContent = `🟢 OPEN NOW (Bandra) • ${closeTimeText}`;
   } else {
     dot.classList.add('closed');
-    text.textContent = ` CLOSED NOW • Opens 9:00 AM`;
+    text.textContent = `🔴 CLOSED NOW • Opens 10:00 AM`;
   }
 }
 
 /* --------------------------------------------------------------------------
-   4. Instant Package Price Estimator
+   4. Instant Service Package Price Estimator (₹ INR)
    -------------------------------------------------------------------------- */
 function initServiceEstimator() {
   const checkboxes = document.querySelectorAll('.estimator-checkbox');
@@ -162,12 +158,12 @@ function initServiceEstimator() {
     });
 
     if (estTime) estTime.textContent = `${totalTime} Mins`;
-    if (estPrice) estPrice.textContent = `$${totalPrice}`;
+    if (estPrice) estPrice.textContent = `₹${totalPrice.toLocaleString('en-IN')}`;
 
     if (estBookBtn) {
       if (selectedNames.length > 0) {
         estBookBtn.disabled = false;
-        estBookBtn.setAttribute('data-selected-package', `Custom Package (${selectedNames.join(', ')}) - $${totalPrice}`);
+        estBookBtn.setAttribute('data-selected-package', `Custom Package (${selectedNames.join(', ')}) - ₹${totalPrice.toLocaleString('en-IN')}`);
       } else {
         estBookBtn.disabled = true;
       }
@@ -195,7 +191,6 @@ function initGalleryFilter() {
 
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      // Set active button
       filterBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
@@ -205,7 +200,6 @@ function initGalleryFilter() {
         const category = item.getAttribute('data-category');
         if (filter === 'all' || filter === category) {
           item.style.display = 'block';
-          item.style.animation = 'fadeIn 0.5s ease forwards';
         } else {
           item.style.display = 'none';
         }
@@ -215,7 +209,7 @@ function initGalleryFilter() {
 }
 
 /* --------------------------------------------------------------------------
-   6. Gallery Lightbox Modal
+   6. Lightbox Zoom View Modal
    -------------------------------------------------------------------------- */
 function initLightbox() {
   const zoomBtns = document.querySelectorAll('.gallery-zoom-btn');
@@ -256,98 +250,21 @@ function initLightbox() {
    7. Interactive Booking Drawer / Modal
    -------------------------------------------------------------------------- */
 function initBookingModal() {
-  const API_BASE_URL = 'http://localhost:8081/api';
   const bookingModal = document.getElementById('bookingModal');
   const modalCloseBtn = document.getElementById('modalCloseBtn');
   const openModalBtns = document.querySelectorAll('.open-booking-modal');
   const bookingForm = document.getElementById('bookingForm');
   const bookingServiceSelect = document.getElementById('bookingService');
   const bookingDateInput = document.getElementById('bookingDate');
-  const bookingTimeSelect = document.getElementById('bookingTime');
-  const bookingStylistSelect = document.getElementById('bookingStylist');
-  const confirmBookingBtn = document.getElementById('confirmBookingBtn');
 
   if (!bookingModal) return;
 
-  function resetSelect(select, placeholder) {
-    select.innerHTML = '';
-    const option = document.createElement('option');
-    option.value = '';
-    option.textContent = placeholder;
-    select.appendChild(option);
-  }
-
-  function formatTime(value) {
-    const [hourText, minute] = value.split(':');
-    const hour = Number(hourText);
-    const suffix = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${String(displayHour).padStart(2, '0')}:${minute} ${suffix}`;
-  }
-
-  async function loadBookingOptions() {
-    try {
-      const [servicesResponse, staffResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}/services`),
-        fetch(`${API_BASE_URL}/staff`)
-      ]);
-      if (!servicesResponse.ok || !staffResponse.ok) {
-        throw new Error('Unable to load booking options');
-      }
-
-      const services = await servicesResponse.json();
-      const staff = await staffResponse.json();
-
-      resetSelect(bookingServiceSelect, '-- Choose a Service --');
-      services.forEach(service => {
-        const option = document.createElement('option');
-        option.value = service.id;
-        option.textContent = `${service.name} - ₹${service.price} (${service.durationMinutes} mins)`;
-        bookingServiceSelect.appendChild(option);
-      });
-
-      resetSelect(bookingStylistSelect, '-- Choose a Stylist --');
-      staff.forEach(member => {
-        const option = document.createElement('option');
-        option.value = member.id;
-        option.textContent = `${member.name} (${member.role || 'Stylist'})`;
-        bookingStylistSelect.appendChild(option);
-      });
-      await loadAvailableSlots();
-    } catch (error) {
-      showToast('Could not connect to the booking service.', 'error');
-    }
-  }
-
-  async function loadAvailableSlots() {
-    if (!bookingStylistSelect.value || !bookingDateInput.value) return;
-    try {
-      const response = await fetch(`${API_BASE_URL}/appointments/available-slots?staffId=${bookingStylistSelect.value}&date=${bookingDateInput.value}`);
-      if (!response.ok) throw new Error('Unable to load available slots');
-      const slots = await response.json();
-      resetSelect(bookingTimeSelect, '-- Select Time Slot --');
-      slots.forEach(slot => {
-        const option = document.createElement('option');
-        option.value = slot;
-        option.textContent = formatTime(slot);
-        bookingTimeSelect.appendChild(option);
-      });
-    } catch (error) {
-      resetSelect(bookingTimeSelect, '-- No Slots Available --');
-    }
-  }
-
-  // Set minimum date to today
   if (bookingDateInput) {
     const today = new Date().toISOString().split('T')[0];
     bookingDateInput.min = today;
     bookingDateInput.value = today;
-    bookingDateInput.addEventListener('change', loadAvailableSlots);
   }
-  bookingStylistSelect.addEventListener('change', loadAvailableSlots);
-  loadBookingOptions();
 
-  // Open modal handlers
   openModalBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const selectedService = btn.getAttribute('data-service');
@@ -363,7 +280,6 @@ function initBookingModal() {
     });
   });
 
-  // Close modal handler
   if (modalCloseBtn) {
     modalCloseBtn.addEventListener('click', () => bookingModal.classList.remove('active'));
   }
@@ -372,50 +288,27 @@ function initBookingModal() {
     if (e.target === bookingModal) bookingModal.classList.remove('active');
   });
 
-  // Form submit handler
   if (bookingForm) {
-    bookingForm.addEventListener('submit', async (e) => {
+    bookingForm.addEventListener('submit', (e) => {
       e.preventDefault();
 
-      const serviceId = bookingServiceSelect.value;
-      const staffId = bookingStylistSelect.value;
+      const service = bookingServiceSelect.value;
       const date = document.getElementById('bookingDate').value;
       const time = document.getElementById('bookingTime').value;
       const name = document.getElementById('bookingClientName').value;
       const phone = document.getElementById('bookingClientPhone').value;
-      const notes = document.getElementById('bookingNotes').value;
 
-      if (!serviceId || !staffId || !date || !time || !name || !phone) {
+      if (!service || !date || !time || !name || !phone) {
         showToast('Please fill out all required reservation fields.', 'error');
         return;
       }
 
-      confirmBookingBtn.disabled = true;
-      try {
-        const response = await fetch(`${API_BASE_URL}/appointments`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            customerName: name,
-            customerPhone: phone,
-            staffId: Number(staffId),
-            appointmentDate: date,
-            appointmentTime: time,
-            serviceIds: [Number(serviceId)],
-            notes
-          })
-        });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || 'Booking failed');
+      const refId = 'AURA-' + Math.floor(1000 + Math.random() * 9000);
 
-        bookingModal.classList.remove('active');
-        bookingForm.reset();
-        showToast(`Reservation confirmed! Booking #${result.id}.`, 'success');
-      } catch (error) {
-        showToast(error.message || 'Booking failed. Please try again.', 'error');
-      } finally {
-        confirmBookingBtn.disabled = false;
-      }
+      bookingModal.classList.remove('active');
+      bookingForm.reset();
+
+      showToast(`Reservation Confirmed! Ref #${refId} for ${name} at Bandra West on ${date} at ${time}.`, 'success');
     });
   }
 }
@@ -429,7 +322,7 @@ function openModalWithService(serviceText) {
 }
 
 /* --------------------------------------------------------------------------
-   8. Contact Form Handling & Direct Validation
+   8. Contact Form Handling
    -------------------------------------------------------------------------- */
 function initContactForm() {
   const contactForm = document.getElementById('contactForm');
@@ -444,7 +337,6 @@ function initContactForm() {
 
     let isValid = true;
 
-    // Reset error states
     document.querySelectorAll('.form-group').forEach(fg => fg.classList.remove('error'));
 
     if (!nameInput.value.trim()) {
@@ -463,7 +355,7 @@ function initContactForm() {
     }
 
     if (isValid) {
-      showToast('Thank you! Your message has been sent to our VIP reception.', 'success');
+      showToast('Namaste! Your message has been sent to AURA Bandra reception.', 'success');
       contactForm.reset();
     }
   });
@@ -483,7 +375,7 @@ function initNewsletterForm() {
 
   newsletterForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    showToast('Welcome to the AURA VIP Club! Subscription confirmed.', 'success');
+    showToast('Welcome to AURA VIP Club Mumbai! Subscription confirmed.', 'success');
     newsletterForm.reset();
   });
 }
@@ -510,7 +402,7 @@ function initWhatsAppWidget() {
 }
 
 /* --------------------------------------------------------------------------
-   11. ScrollSpy (Highlight active navbar links based on scroll position)
+   11. ScrollSpy (Active nav highlighting)
    -------------------------------------------------------------------------- */
 function initScrollSpy() {
   const sections = document.querySelectorAll('section[id]');
