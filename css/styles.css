@@ -1438,6 +1438,138 @@ button {
   gap: 0.5rem;
 }
 
+/* --------------------------------------------------------------------------
+   Confirmation Modal Custom Styling
+   -------------------------------------------------------------------------- */
+.confirmation-modal-container {
+  max-width: 500px;
+  padding: 3rem 2.25rem;
+}
+
+.confirmation-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.checkmark-circle {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: rgba(203, 213, 225, 0.12);
+  border: 2px solid var(--accent-platinum);
+  color: var(--accent-platinum);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  margin: 0 auto 1.5rem auto;
+  box-shadow: var(--shadow-platinum);
+}
+
+.confirmation-title {
+  font-family: var(--font-heading);
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  margin-bottom: 0.4rem;
+  color: var(--text-primary);
+}
+
+.confirmation-subtitle {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  margin-bottom: 1.5rem;
+}
+
+.confirmation-ref-box {
+  background: rgba(9, 10, 15, 0.75);
+  border: 1px dashed var(--border-color);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  width: 100%;
+}
+
+.ref-label {
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.ref-id {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--accent-platinum);
+  letter-spacing: 2px;
+}
+
+.confirmation-details-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 1.15rem 1.25rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+  text-align: center;
+}
+
+.detail-line-primary {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.detail-line-secondary {
+  font-size: 0.92rem;
+  color: var(--accent-platinum);
+  font-weight: 500;
+}
+
+.confirmation-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #f59e0b;
+  padding: 0.45rem 1.2rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  margin-bottom: 1.25rem;
+}
+
+.status-indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #f59e0b;
+  box-shadow: 0 0 10px #f59e0b;
+}
+
+.confirmation-notice {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 1.75rem;
+  line-height: 1.5;
+}
+
+.confirmation-notice i {
+  color: #25d366;
+  margin-right: 0.3rem;
+}
+
 /* Lightbox Modal */
 .lightbox-modal {
   position: fixed;

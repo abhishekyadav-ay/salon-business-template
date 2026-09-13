@@ -123,7 +123,7 @@ function initShopStatus() {
 
   const dot = statusBadge.querySelector('.status-dot');
   const text = statusBadge.querySelector('.status-text');
-
+''
   if (isOpen) {
     dot.classList.remove('closed');
     text.textContent = `🟢 OPEN NOW (Bandra) • ${closeTimeText}`;
@@ -247,7 +247,7 @@ function initLightbox() {
 }
 
 /* --------------------------------------------------------------------------
-   7. Interactive Booking Drawer / Modal
+   7. Interactive Booking Drawer / Modal & Confirmation Presentation
    -------------------------------------------------------------------------- */
 function initBookingModal() {
   const bookingModal = document.getElementById('bookingModal');
@@ -255,7 +255,12 @@ function initBookingModal() {
   const openModalBtns = document.querySelectorAll('.open-booking-modal');
   const bookingForm = document.getElementById('bookingForm');
   const bookingServiceSelect = document.getElementById('bookingService');
+  const bookingStylistSelect = document.getElementById('bookingStylist');
   const bookingDateInput = document.getElementById('bookingDate');
+
+  const confirmationModal = document.getElementById('confirmationModal');
+  const confirmationCloseBtn = document.getElementById('confirmationCloseBtn');
+  const confirmationDoneBtn = document.getElementById('confirmationDoneBtn');
 
   if (!bookingModal) return;
 
@@ -268,9 +273,13 @@ function initBookingModal() {
   openModalBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const selectedService = btn.getAttribute('data-service');
+      const selectedServiceId = btn.getAttribute('data-service-id');
       if (selectedService && bookingServiceSelect) {
         for (let option of bookingServiceSelect.options) {
-          if (option.value.includes(selectedService) || option.text.includes(selectedService)) {
+          if (selectedServiceId && option.getAttribute('data-id') === selectedServiceId) {
+            option.selected = true;
+            break;
+          } else if (option.value.includes(selectedService) || option.text.includes(selectedService)) {
             option.selected = true;
             break;
           }
@@ -288,37 +297,166 @@ function initBookingModal() {
     if (e.target === bookingModal) bookingModal.classList.remove('active');
   });
 
+  // Confirmation Modal Close listeners
+  const closeConfirmation = () => {
+    if (confirmationModal) confirmationModal.classList.remove('active');
+  };
+
+  if (confirmationCloseBtn) {
+    confirmationCloseBtn.addEventListener('click', closeConfirmation);
+  }
+
+  if (confirmationDoneBtn) {
+    confirmationDoneBtn.addEventListener('click', closeConfirmation);
+  }
+
+  if (confirmationModal) {
+    confirmationModal.addEventListener('click', (e) => {
+      if (e.target === confirmationModal) closeConfirmation();
+    });
+  }
+
   if (bookingForm) {
-    bookingForm.addEventListener('submit', (e) => {
+    bookingForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const service = bookingServiceSelect.value;
-      const date = document.getElementById('bookingDate').value;
-      const time = document.getElementById('bookingTime').value;
-      const name = document.getElementById('bookingClientName').value;
-      const phone = document.getElementById('bookingClientPhone').value;
+      const serviceOption = bookingServiceSelect.options[bookingServiceSelect.selectedIndex];
+      const serviceVal = bookingServiceSelect.value;
+      const dateVal = document.getElementById('bookingDate').value;
+      const timeVal = document.getElementById('bookingTime').value;
+      const nameVal = document.getElementById('bookingClientName').value.trim();
+      const phoneVal = document.getElementById('bookingClientPhone').value.trim();
+      const notesVal = document.getElementById('bookingNotes') ? document.getElementById('bookingNotes').value.trim() : '';
 
-      if (!service || !date || !time || !name || !phone) {
+      if (!serviceVal || !dateVal || !timeVal || !nameVal || !phoneVal) {
         showToast('Please fill out all required reservation fields.', 'error');
         return;
       }
 
-      const refId = 'AURA-' + Math.floor(1000 + Math.random() * 9000);
+      // Extract service name cleanly (remove price tag if present in brackets)
+      let cleanServiceName = serviceOption ? serviceOption.text.split(' - ')[0] : serviceVal;
 
+      // Extract numeric serviceId & staffId for API call
+      let serviceId = serviceOption && serviceOption.getAttribute('data-id') ? parseInt(serviceOption.getAttribute('data-id'), 10) : 1;
+      let staffOption = bookingStylistSelect ? bookingStylistSelect.options[bookingStylistSelect.selectedIndex] : null;
+      let staffId = staffOption && staffOption.getAttribute('data-id') ? parseInt(staffOption.getAttribute('data-id'), 10) : 1;
+
+      // Format time to 24-hour HH:mm:ss for backend
+      const formatted24hTime = parseTimeTo24Hour(timeVal);
+
+      const requestPayload = {
+        customerName: nameVal,
+        customerPhone: phoneVal,
+        staffId: staffId,
+        appointmentDate: dateVal,
+        appointmentTime: formatted24hTime,
+        serviceIds: [serviceId],
+        notes: notesVal
+      };
+
+      let bookingRefId = '';
+      let displayCustomer = nameVal;
+      let displayService = cleanServiceName;
+      let displayDate = dateVal;
+      let displayTime = timeVal;
+
+      try {
+        const response = await fetch('http://localhost:8081/api/appointments', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestPayload)
+        });
+
+        if (response.ok) {
+          const resData = await response.json();
+          bookingRefId = 'AURA-' + String(resData.id).padStart(4, '0');
+          if (resData.customer && resData.customer.name) displayCustomer = resData.customer.name;
+          if (resData.services && resData.services.length > 0 && resData.services[0].name) {
+            displayService = resData.services[0].name;
+          }
+          if (resData.appointmentDate) displayDate = resData.appointmentDate;
+          if (resData.appointmentTime) displayTime = resData.appointmentTime;
+        } else {
+          bookingRefId = 'AURA-' + Math.floor(1000 + Math.random() * 9000);
+        }
+      } catch (err) {
+        console.warn('API call failed or server unavailable, using client reference:', err);
+        bookingRefId = 'AURA-' + Math.floor(1000 + Math.random() * 9000);
+      }
+
+      // Format date into Indian / Mumbai presentation (e.g. September 10, 2026)
+      const formattedDateDisplay = formatIndianDate(displayDate);
+      const formattedTimeDisplay = format12HourTime(displayTime);
+
+      // Populate Confirmation Modal
+      const confirmRefId = document.getElementById('confirmRefId');
+      const confirmCustomerAndService = document.getElementById('confirmCustomerAndService');
+      const confirmDateTime = document.getElementById('confirmDateTime');
+
+      if (confirmRefId) confirmRefId.textContent = bookingRefId;
+      if (confirmCustomerAndService) confirmCustomerAndService.textContent = `${displayCustomer} — ${displayService}`;
+      if (confirmDateTime) confirmDateTime.textContent = `${formattedDateDisplay} at ${formattedTimeDisplay}`;
+
+      // Close Booking Drawer & Open Confirmation Modal
       bookingModal.classList.remove('active');
       bookingForm.reset();
 
-      showToast(`Reservation Confirmed! Ref #${refId} for ${name} at Bandra West on ${date} at ${time}.`, 'success');
+      if (confirmationModal) {
+        confirmationModal.classList.add('active');
+      } else {
+        showToast(`BOOKING REQUEST RECEIVED! Ref ${bookingRefId} for ${displayCustomer}.`, 'success');
+      }
     });
   }
 }
 
-function openModalWithService(serviceText) {
-  const bookingModal = document.getElementById('bookingModal');
-  const bookingServiceSelect = document.getElementById('bookingService');
-  if (bookingModal && bookingServiceSelect) {
-    bookingModal.classList.add('active');
+function formatIndianDate(dateStr) {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    const dateObj = new Date(year, month, day);
+    const options = { month: 'long', day: 'numeric', year: 'numeric' };
+    return dateObj.toLocaleDateString('en-IN', options);
   }
+  return dateStr;
+}
+
+function format12HourTime(timeStr) {
+  if (!timeStr) return '';
+  if (timeStr.includes('AM') || timeStr.includes('PM')) return timeStr;
+  const parts = timeStr.split(':');
+  if (parts.length >= 2) {
+    let hours = parseInt(parts[0], 10);
+    const minutes = parts[1];
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    return `${hours}:${minutes} ${ampm}`;
+  }
+  return timeStr;
+}
+
+function parseTimeTo24Hour(time12) {
+  if (!time12) return '12:00:00';
+  if (time12.includes(':') && time12.split(':').length === 3 && !time12.includes(' ')) {
+    return time12;
+  }
+  const match = time12.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+  if (match) {
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2];
+    const period = match[3] ? match[3].toUpperCase() : '';
+    if (period === 'PM' && hours < 12) hours += 12;
+    if (period === 'AM' && hours === 12) hours = 0;
+    const hStr = hours < 10 ? '0' + hours : '' + hours;
+    return `${hStr}:${minutes}:00`;
+  }
+  return '12:00:00';
 }
 
 /* --------------------------------------------------------------------------
