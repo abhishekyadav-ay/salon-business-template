@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import salon_backend.dto.AppointmentRequest;
+import salon_backend.dto.AppointmentRescheduleRequest;
 import salon_backend.dto.AppointmentResponse;
 import salon_backend.entity.Appointment;
 import salon_backend.entity.Customer;
@@ -46,7 +47,8 @@ public class AppointmentService {
     }
 
     @Transactional
-    public AppointmentResponse createAppointment(AppointmentRequest request) {
+    public AppointmentResponse createAppointment(
+            AppointmentRequest request) {
 
         validateDateAndTime(
                 request.getAppointmentDate(),
@@ -66,7 +68,9 @@ public class AppointmentService {
         Staff staff = staffRepository
                 .findById(request.getStaffId())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Staff member not found")
+                        new ResourceNotFoundException(
+                                "Staff member not found"
+                        )
                 );
 
         List<Long> requestedIds = request.getServiceIds();
@@ -77,6 +81,7 @@ public class AppointmentService {
                 serviceRepository.findAllByIdIn(requestedIds);
 
         if (services.size() != uniqueIds.size()) {
+
             throw new ResourceNotFoundException(
                     "One or more selected services were not found"
             );
@@ -99,8 +104,12 @@ public class AppointmentService {
 
         appointment.setCustomer(customer);
         appointment.setStaff(staff);
-        appointment.setAppointmentDate(request.getAppointmentDate());
-        appointment.setAppointmentTime(request.getAppointmentTime());
+        appointment.setAppointmentDate(
+                request.getAppointmentDate()
+        );
+        appointment.setAppointmentTime(
+                request.getAppointmentTime()
+        );
         appointment.setNotes(request.getNotes());
         appointment.setStatus("PENDING");
         appointment.setServices(services);
@@ -111,6 +120,7 @@ public class AppointmentService {
         return AppointmentMapper.toResponse(savedAppointment);
     }
 
+
     public Page<AppointmentResponse> getAppointments(
             String status,
             Long staffId,
@@ -118,15 +128,27 @@ public class AppointmentService {
             Pageable pageable) {
 
         return appointmentRepository
-                .findWithFilters(status, staffId, date, pageable)
+                .findWithFilters(
+                        status,
+                        staffId,
+                        date,
+                        pageable
+                )
                 .map(AppointmentMapper::toResponse);
     }
+
 
     public Page<AppointmentResponse> getAllAppointments(
             Pageable pageable) {
 
-        return getAppointments(null, null, null, pageable);
+        return getAppointments(
+                null,
+                null,
+                null,
+                pageable
+        );
     }
+
 
     public AppointmentResponse getAppointment(Long id) {
 
@@ -140,6 +162,7 @@ public class AppointmentService {
 
         return AppointmentMapper.toResponse(appointment);
     }
+
 
     @Transactional
     public AppointmentResponse confirmAppointment(Long id) {
@@ -165,8 +188,11 @@ public class AppointmentService {
         Appointment updatedAppointment =
                 appointmentRepository.save(appointment);
 
-        return AppointmentMapper.toResponse(updatedAppointment);
+        return AppointmentMapper.toResponse(
+                updatedAppointment
+        );
     }
+
 
     @Transactional
     public AppointmentResponse completeAppointment(Long id) {
@@ -192,8 +218,11 @@ public class AppointmentService {
         Appointment updatedAppointment =
                 appointmentRepository.save(appointment);
 
-        return AppointmentMapper.toResponse(updatedAppointment);
+        return AppointmentMapper.toResponse(
+                updatedAppointment
+        );
     }
+
 
     @Transactional
     public AppointmentResponse cancelAppointment(Long id) {
@@ -206,7 +235,8 @@ public class AppointmentService {
                         )
                 );
 
-        String currentStatus = appointment.getStatus();
+        String currentStatus =
+                appointment.getStatus();
 
         if ("COMPLETED".equalsIgnoreCase(currentStatus)
                 || "CANCELLED".equalsIgnoreCase(currentStatus)) {
@@ -224,8 +254,135 @@ public class AppointmentService {
         Appointment updatedAppointment =
                 appointmentRepository.save(appointment);
 
-        return AppointmentMapper.toResponse(updatedAppointment);
+        return AppointmentMapper.toResponse(
+                updatedAppointment
+        );
     }
+
+
+    /*
+     * =========================================
+     * RESCHEDULE / ADJUST APPOINTMENT
+     * =========================================
+     *
+     * Admin can change:
+     *
+     * - Staff
+     * - Appointment date
+     * - Appointment time
+     *
+     * Customer, services, notes, booking ID
+     * and status remain unchanged.
+     */
+    @Transactional
+    public AppointmentResponse rescheduleAppointment(
+            Long id,
+            AppointmentRescheduleRequest request) {
+
+        Appointment appointment = appointmentRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Appointment not found"
+                        )
+                );
+
+        String currentStatus =
+                appointment.getStatus();
+
+        /*
+         * Completed and cancelled appointments
+         * cannot be adjusted.
+         */
+        if ("COMPLETED".equalsIgnoreCase(currentStatus)
+                || "CANCELLED".equalsIgnoreCase(currentStatus)) {
+
+            throw new IllegalArgumentException(
+                    "Cannot adjust an appointment that is "
+                            + currentStatus.toUpperCase()
+            );
+        }
+
+        /*
+         * Validate the new date and time.
+         */
+        validateDateAndTime(
+                request.getAppointmentDate(),
+                request.getAppointmentTime()
+        );
+
+        /*
+         * Check that the new staff member exists.
+         */
+        Staff staff = staffRepository
+                .findById(request.getStaffId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Staff member not found"
+                        )
+                );
+
+        /*
+         * Check whether another appointment already
+         * occupies the requested staff/date/time.
+         *
+         * We use the existing repository method
+         * findByStaffIdAndAppointmentDate().
+         */
+        boolean slotOccupied =
+                appointmentRepository
+                        .findByStaffIdAndAppointmentDate(
+                                staff.getId(),
+                                request.getAppointmentDate()
+                        )
+                        .stream()
+                        .anyMatch(existingAppointment ->
+                                !existingAppointment
+                                        .getId()
+                                        .equals(id)
+
+                                        && !"CANCELLED"
+                                        .equalsIgnoreCase(
+                                                existingAppointment
+                                                        .getStatus()
+                                        )
+
+                                        && request
+                                                .getAppointmentTime()
+                                                .equals(
+                                                        existingAppointment
+                                                                .getAppointmentTime()
+                                                )
+                        );
+
+        if (slotOccupied) {
+
+            throw new ConflictException(
+                    "The selected staff member is already booked for this slot"
+            );
+        }
+
+        /*
+         * Update only the scheduling information.
+         */
+        appointment.setStaff(staff);
+
+        appointment.setAppointmentDate(
+                request.getAppointmentDate()
+        );
+
+        appointment.setAppointmentTime(
+                request.getAppointmentTime()
+        );
+
+        Appointment updatedAppointment =
+                appointmentRepository.save(appointment);
+
+        return AppointmentMapper.toResponse(
+                updatedAppointment
+        );
+    }
+
 
     public List<LocalTime> getAvailableSlots(
             Long staffId,
@@ -239,10 +396,14 @@ public class AppointmentService {
                         )
                 );
 
-        Set<LocalTime> occupied = new HashSet<>();
+        Set<LocalTime> occupied =
+                new HashSet<>();
 
         appointmentRepository
-                .findByStaffIdAndAppointmentDate(staffId, date)
+                .findByStaffIdAndAppointmentDate(
+                        staffId,
+                        date
+                )
                 .stream()
                 .filter(appointment ->
                         !"CANCELLED".equalsIgnoreCase(
@@ -252,11 +413,13 @@ public class AppointmentService {
                 .map(Appointment::getAppointmentTime)
                 .forEach(occupied::add);
 
-        List<LocalTime> slots = new ArrayList<>();
+        List<LocalTime> slots =
+                new ArrayList<>();
 
         for (int hour = 9; hour < 18; hour++) {
 
-            LocalTime slot = LocalTime.of(hour, 0);
+            LocalTime slot =
+                    LocalTime.of(hour, 0);
 
             if (!occupied.contains(slot)) {
                 slots.add(slot);
@@ -265,6 +428,7 @@ public class AppointmentService {
 
         return slots;
     }
+
 
     private void validateDateAndTime(
             LocalDate date,

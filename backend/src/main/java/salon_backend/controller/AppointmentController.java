@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import salon_backend.dto.AppointmentRequest;
+import salon_backend.dto.AppointmentRescheduleRequest;
 import salon_backend.dto.AppointmentResponse;
 import salon_backend.service.AppointmentService;
 
@@ -30,9 +31,12 @@ public class AppointmentController {
 
     private final AppointmentService appointmentService;
 
-    public AppointmentController(AppointmentService appointmentService) {
+    public AppointmentController(
+            AppointmentService appointmentService) {
+
         this.appointmentService = appointmentService;
     }
+
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -41,6 +45,7 @@ public class AppointmentController {
 
         return appointmentService.createAppointment(request);
     }
+
 
     @GetMapping
     public Page<AppointmentResponse> getAll(
@@ -56,7 +61,8 @@ public class AppointmentController {
                 ? Sort.by(sortBy).descending()
                 : Sort.by(sortBy).ascending();
 
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable =
+                PageRequest.of(page, size, sort);
 
         return appointmentService.getAppointments(
                 status,
@@ -66,31 +72,60 @@ public class AppointmentController {
         );
     }
 
+
     @GetMapping("/{id}")
-    public AppointmentResponse getById(@PathVariable Long id) {
+    public AppointmentResponse getById(
+            @PathVariable Long id) {
+
         return appointmentService.getAppointment(id);
     }
 
+
     @PatchMapping("/{id}/confirm")
-    public AppointmentResponse confirm(@PathVariable Long id) {
+    public AppointmentResponse confirm(
+            @PathVariable Long id) {
+
         return appointmentService.confirmAppointment(id);
     }
 
+
     @PatchMapping("/{id}/complete")
-    public AppointmentResponse complete(@PathVariable Long id) {
+    public AppointmentResponse complete(
+            @PathVariable Long id) {
+
         return appointmentService.completeAppointment(id);
     }
 
+
     @PatchMapping("/{id}/cancel")
-    public AppointmentResponse cancel(@PathVariable Long id) {
+    public AppointmentResponse cancel(
+            @PathVariable Long id) {
+
         return appointmentService.cancelAppointment(id);
     }
+
+
+    @PatchMapping("/{id}/reschedule")
+    public AppointmentResponse reschedule(
+            @PathVariable Long id,
+            @Valid @RequestBody
+            AppointmentRescheduleRequest request) {
+
+        return appointmentService.rescheduleAppointment(
+                id,
+                request
+        );
+    }
+
 
     @GetMapping("/available-slots")
     public List<LocalTime> availableSlots(
             @RequestParam Long staffId,
             @RequestParam LocalDate date) {
 
-        return appointmentService.getAvailableSlots(staffId, date);
+        return appointmentService.getAvailableSlots(
+                staffId,
+                date
+        );
     }
 }

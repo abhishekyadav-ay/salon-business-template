@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Appointment Center | AURA Atelier</title>
+
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+    <header class="admin-header">
+        <div class="brand">
+            <span class="brand-mark">A</span>
+
+            <div>
+                <h1>AURA Atelier</h1>
+                <p>Admin Appointment Center</p>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <span class="prototype-badge">
+                PROTOTYPE — ADMIN DEMO
+            </span>
+
+            <a href="index.html" class="back-link">
+                ← Customer Website
+            </a>
+        </div>
+    </header>
+
+    <main class="admin-container">
+
+        <section class="page-intro">
+            <div>
+                <p class="eyebrow">APPOINTMENT MANAGEMENT</p>
+
+                <h2>Booking Requests</h2>
+
+                <p class="intro-text">
+                    Review customer booking requests and manage their appointment status.
+                </p>
+            </div>
+
+            <button id="refreshButton" class="refresh-button">
+                ↻ Refresh
+            </button>
+        </section>
+
+        <section class="dashboard-summary">
+
+            <div class="summary-card">
+                <span class="summary-label">Pending Requests</span>
+                <strong id="pendingCount">0</strong>
+            </div>
+
+            <div class="summary-card">
+                <span class="summary-label">Confirmed Today</span>
+                <strong id="confirmedCount">0</strong>
+            </div>
+
+            <div class="summary-card">
+                <span class="summary-label">Total Appointments</span>
+                <strong id="totalCount">0</strong>
+            </div>
+
+        </section>
+
+        <section class="appointments-section">
+
+            <div class="section-heading">
+                <div>
+                    <h3>Appointment Requests</h3>
+                    <p>
+                        New customer bookings will appear here when they are submitted.
+                    </p>
+                </div>
+
+                <div class="status-filter">
+                    <label for="statusFilter">Status:</label>
+
+                    <select id="statusFilter">
+                        <option value="PENDING">Pending</option>
+                        <option value="ALL">All Appointments</option>
+                        <option value="CONFIRMED">Confirmed</option>
+                        <option value="COMPLETED">Completed</option>
+                        <option value="CANCELLED">Cancelled</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="loadingState" class="state-message">
+                <div class="loading-spinner"></div>
+                <p>Loading appointments...</p>
+            </div>
+
+            <div id="emptyState" class="state-message hidden">
+                <div class="empty-icon">○</div>
+                <h4>No appointment requests</h4>
+                <p>
+                    There are currently no appointments matching this filter.
+                </p>
+            </div>
+
+            <div id="errorState" class="state-message error-state hidden">
+                <h4>Unable to load appointments</h4>
+                <p id="errorMessage">
+                    Please check whether the backend server is running.
+                </p>
+
+                <button id="retryButton" class="secondary-button">
+                    Try Again
+                </button>
+            </div>
+
+            <div id="appointmentsList" class="appointments-list">
+                <!-- Appointment cards will be inserted by admin.js -->
+            </div>
+
+        </section>
+
+    </main>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="js/admin.js"></script>
+
+</body>
+</html>
