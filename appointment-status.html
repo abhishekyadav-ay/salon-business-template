@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Appointment Status | AURA Atelier</title>
+
+    <link rel="stylesheet" href="css/appointment-status.css">
+</head>
+
+<body>
+
+    <main class="status-page">
+
+        <div class="status-container">
+
+            <div class="status-header">
+                <p class="eyebrow">AURA ATELIER</p>
+
+                <h1>Check Your Appointment</h1>
+
+                <p>
+                    Enter your booking ID to view your latest appointment details.
+                </p>
+            </div>
+
+            <section class="lookup-card">
+
+                <form id="statusForm">
+
+                    <label for="bookingId">
+                        Booking ID
+                    </label>
+
+                    <input
+                        type="number"
+                        id="bookingId"
+                        placeholder="Enter your booking ID"
+                        required
+                    >
+
+                    <button type="submit" id="checkButton">
+                        Check Appointment
+                    </button>
+
+                </form>
+
+                <div id="statusLoading" class="message hidden">
+                    Checking appointment...
+                </div>
+
+                <div id="statusError" class="message error hidden">
+                    <strong>Appointment not found</strong>
+                    <span id="errorMessage">
+                        Please check your booking ID and try again.
+                    </span>
+                </div>
+
+            </section>
+
+
+            <!-- Appointment Result -->
+
+            <section id="appointmentResult" class="appointment-result hidden">
+
+                <div class="result-header">
+
+                    <div>
+                        <p class="result-label">BOOKING</p>
+
+                        <h2>
+                            Booking #<span id="resultId"></span>
+                        </h2>
+                    </div>
+
+                    <span id="resultStatus" class="status-badge">
+                        PENDING
+                    </span>
+
+                </div>
+
+
+                <div class="result-details">
+
+    <div class="detail">
+        <span>Customer</span>
+        <strong id="resultCustomer">—</strong>
+    </div>
+
+    <div class="detail">
+        <span>Phone</span>
+        <strong id="resultPhone">—</strong>
+    </div>
+
+    <div class="detail">
+        <span>Service</span>
+        <strong id="resultServices">—</strong>
+    </div>
+
+    <div class="detail">
+        <span>Staff Member</span>
+        <strong id="resultStaff">—</strong>
+        <small id="resultStaffRole"></small>
+    </div>
+
+    <div class="detail">
+        <span>Specialization</span>
+        <strong id="resultSpecialization">—</strong>
+    </div>
+
+    <div class="detail">
+        <span>Date</span>
+        <strong id="resultDate">—</strong>
+    </div>
+
+    <div class="detail">
+        <span>Time</span>
+        <strong id="resultTime">—</strong>
+    </div>
+
+    <div class="detail">
+        <span>Duration</span>
+        <strong id="resultDuration">—</strong>
+    </div>
+
+    <div class="detail">
+        <span>Total</span>
+        <strong id="resultTotal">—</strong>
+    </div>
+
+</div>
+
+
+                <div id="resultNotes" class="result-notes hidden">
+                    <strong>Notes</strong>
+                    <p id="notesText"></p>
+                </div>
+
+
+                <div id="statusMessage" class="status-message">
+                    Your appointment is awaiting confirmation from the salon.
+                </div>
+
+            </section>
+
+
+            <a href="index.html" class="back-link">
+                ← Back to AURA Atelier
+            </a>
+
+        </div>
+
+    </main>
+
+    <script src="js/appointment-status.js"></script>
+
+</body>
+</html>
